@@ -15,8 +15,8 @@ namespace TrianglesInReact.Controllers
     public class RendererController : ControllerBase
     {
 
-        string[] ROWS = { "A", "B", "C", "D", "E", "F" };
-
+        private readonly string[] ROWS = { "A", "B", "C", "D", "E", "F" };
+        const int HEIGHT_OF_TRIANGLE = 10;
         private readonly ILogger<RendererController> _logger;
 
         public RendererController(ILogger<RendererController> logger)
@@ -28,36 +28,50 @@ namespace TrianglesInReact.Controllers
         public Point[] Get(string Row, int Column)
         {
             List<Point> points = new List<Point>();
-            int y_start = 0;
-            int y_end = 0;
-            int HEIGHT_OF_TRIANGLE = 10;
-            for (int i = 0; i < ROWS.Length; i++) {
-                if (ROWS[i] == Row) {
-                    y_start = i * HEIGHT_OF_TRIANGLE;
-                    y_end = y_start + HEIGHT_OF_TRIANGLE;
-                }
-            }
+            int y_start = CalculateStartingHeight(Row);
 
-            if (Column % 2 == 0)
+            if (IsAnEvenPositionTriangle(Column))
             {
-                for (int y = 0; y < 10; y++)
+                for (int y = 0; y <= 10; y++)
                 {
-                    for (int x = 10-y; x >=0; x--)
+                    for (int x = 10 - y; x >= 0; x--)
                     {
                         points.Add(new Point(((Column) / 2 * 10) - x, y_start + y));
                     }
                 }
             }
-            else {
-                for (int y = 0; y < 10; y++) {
-                    for (int x = 0; x <= y ; x++)
+            else
+            {
+                for (int y = 0; y <= 10; y++)
+                {
+                    for (int x = 0; x <= y; x++)
                     {
-                        points.Add(new Point(((Column-1)/2*10)+x, y_start+y));
+                        points.Add(new Point(((Column - 1) / 2 * 10) + x, y_start + y));
                     }
                 }
             }
 
             return points.ToArray();
+        }
+
+        private static bool IsAnEvenPositionTriangle(int Column)
+        {
+            return Column % 2 == 0;
+        }
+
+        private int CalculateStartingHeight(string Row)
+        {
+            int y_start = 0;
+
+            for (int i = 0; i < ROWS.Length; i++)
+            {
+                if (ROWS[i] == Row)
+                {
+                    y_start = i * HEIGHT_OF_TRIANGLE;
+                }
+            }
+
+            return y_start;
         }
     }
 }

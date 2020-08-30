@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
+using Triangles.Validators;
 
 namespace TrianglesInReact.Controllers
 {
@@ -17,131 +18,104 @@ namespace TrianglesInReact.Controllers
     public class LocatorController : ControllerBase
     {
 
-        string[] ROWS = { "A", "B", "C", "D", "E", "F" };
-
+        private string[]  ROWS = { "A", "B", "C", "D", "E", "F" };
         private readonly ILogger<LocatorController> _logger;
 
         public LocatorController(ILogger<LocatorController> logger)
         {
             _logger = logger;
+
         }
 
         [HttpGet("{vertex1}/{vertex2}/{vertex3}")]
         public string[] Get(string vertex1, string vertex2, string vertex3)
         {
-            string[] coords = vertex1.Split(',');
-            Point point1 = new Point(int.Parse(coords[0]), int.Parse(coords[1]));
-
-            coords = vertex2.Split(',');
-            Point point2 = new Point(int.Parse(coords[0]), int.Parse(coords[1]));
-
-
-            coords = vertex3.Split(',');
-            Point point3 = new Point(int.Parse(coords[0]), int.Parse(coords[1]));
-
             List<Point> points = new List<Point>();
+            Point point1 = ParsePoint(vertex1);
+            Point point2 = ParsePoint(vertex2);
+            Point point3 = ParsePoint(vertex3);
+            
             points.Add(point1);
             points.Add(point2);
             points.Add(point3);
 
-            double distanceA = GetDistance(point1.X, point1.Y, point2.X, point2.Y);
-
-            double distanceB = GetDistance(point1.X, point1.Y, point3.X, point3.Y);
-
-            double distanceC = GetDistance(point2.X, point2.Y, point3.X, point3.Y);
-
-            if (!(distanceA + distanceB > distanceC &&
-                distanceA + distanceC > distanceB &&
-                distanceB + distanceC > distanceA))
-            {
-
-                return new string[] { "INVALID COORDINATES"};
-            }
-            string hypot = distanceA > distanceB ? "a" : "b";
-            hypot = distanceB > distanceC ? "b" : "c";
-
-            Point hypotPoint1 = point1;
-            Point hypotPoint2 = point2;
-            if (hypot == "b")
-            {
-                hypotPoint1 = point1;
-                hypotPoint2 = point3;
-            }
-            if (hypot == "c")
-            { 
-                hypotPoint1 = point2;
-                hypotPoint2 = point3;
-            }
-
-            if (hypotPoint2.Y > hypotPoint1.Y) {
-                Point temp = hypotPoint1;
-                hypotPoint1 = hypotPoint2;
-                hypotPoint2 = temp;
-            
-            }
-
-            if (hypotPoint2.X < hypotPoint1.X) {
+            TriangleValidator validator = new TriangleValidator(point1, point2, point3);
+            if (!validator.IsValid()) {
                 return new string[] { "INVALID COORDINATES" };
             }
 
+            string row = ROWS[GetMin_Y(points)/10];
 
+            int col = -1;
+            if (IsTheTriangleInEvenNumberPosition(points,GetMax_X(points)))
+            {
+                col = GetMax_X(points) * 2 / 10;
+            }
+            else {
+                col = (GetMin_X(points) * 2 / 10) + 1 ;
+            }
+            return new string[] {row+col};
+        }
+        private Point ParsePoint(string vertex)
+        {
 
-            int minX = 61;
-            int maxX = -1;
-            int minY = 61;
-            int maxY = 0;
-            foreach (Point point in points) {
-                if (point.X < minX) {
-                    minX = point.X;
-                }
+            string[] coords = vertex.Split(',');
+            return new Point(int.Parse(coords[0]), int.Parse(coords[1]));
+        }
 
+        private int GetMax_X(List<Point> points)
+        {
+            int maxX = Int32.MinValue;
+
+            foreach (Point point in points)
+            {
                 if (point.X > maxX)
                 {
                     maxX = point.X;
                 }
+            }
+            return maxX;
+        }
+
+        private int GetMin_X(List<Point> points)
+        {
+            int minX = Int32.MaxValue;
+            foreach (Point point in points)
+            {
+                if (point.X < minX)
+                {
+                    minX = point.X;
+                }
+            }
+            return minX;
+        }
+
+        private int GetMin_Y(List<Point> points)
+        {
+            int minY = Int32.MaxValue;
+            foreach (Point point in points)
+            {
                 if (point.Y < minY)
                 {
                     minY = point.Y;
                 }
-
-                if (point.Y > maxY)
-                {
-                    maxY = point.Y;
-                }
             }
+            return minY;
+        }
 
-            if (maxY - minY != 10 || maxX - minX != 10) {
-                return new string[] { "INVALID COORDINATES" };
-            }
-
+        private bool IsTheTriangleInEvenNumberPosition(List<Point> points,int maxX) {
             int doubleVertexRightSide = 0;
-
             foreach (Point point in points)
             {
-             
                 if (point.X == maxX)
                 {
                     doubleVertexRightSide++;
                 }
-
             }
-            String row = ROWS[minY/10];
-            int col = -1;
-            if (doubleVertexRightSide == 2)
-            {
-                col = maxX * 2 / 10;
-            }
-            else {
-                col = (minX * 2 / 10) + 1 ;
-            }
-
-            return new string[] {row+col};
-        }
-        private double GetDistance(double x1, double y1, double x2, double y2)
-        {
-            return Math.Sqrt(Math.Pow((x2 - x1), 2) + Math.Pow((y2 - y1), 2));
+            return doubleVertexRightSide == 2;
         }
     }
-  
 }
+
+
 

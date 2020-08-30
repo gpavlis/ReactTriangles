@@ -25,8 +25,6 @@ export class Home extends Component {
 
         const vertexes = [vertex1, vertex2, vertex3];
         let validVertexes = true;
-
-
         for(let vertex of vertexes){
             let vertexParts = vertex.split(",");
             if (vertexParts.length !== 2) {
@@ -37,31 +35,18 @@ export class Home extends Component {
 
                 if (isNaN(part1) || isNaN(part2)) {
                     validVertexes = false; 
-                } else {
-                    if (part1 % 10 !== 0 || part2 % 10 !== 0) {
-                        validVertexes = false; 
-                    } else {
-                        if (part1 < 0 || part1 > 60 || part2 < 0 || part2 > 60) {
-                            validVertexes = false; 
-                        }
-
-                    }
-                }
+                } 
             }
             if (!validVertexes) {
                 break;
             }
         }
-
-        
+                
         if (validVertexes) {
             this.getTriangle(vertex1, vertex2, vertex3);
         } else {
             alert("please enter a vertex in the format XX,YY e.g. 0,10, \nYour coordinates need to be multiples of 10 between 0 and 60");
         }
-
-        
-
     }
 
     renderTriangles() {
@@ -130,7 +115,6 @@ export class Home extends Component {
         return (
             <div>
                 <div>
-                
                     <span>
                         <h5>Please enter an area A-F and 1-12</h5>
                         <input ref="input" type="text"/>
